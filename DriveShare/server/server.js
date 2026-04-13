@@ -40,14 +40,17 @@ const bookings = [];
 const watchRequests = [];
 const notifications = [];
 
+// Route: GET / - Root
 app.get("/", (req, res) => {
   res.send("DriveShare API");
 });
 
+// Route: GET /api/health - Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Route: POST /api/auth/register - Register new user
 app.post("/api/auth/register", (req, res) => {
   const { name, email, password, role, securityQuestions } = req.body;
 
@@ -86,6 +89,7 @@ app.post("/api/auth/register", (req, res) => {
   });
 });
 
+// Route: POST /api/auth/login - User login
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -108,11 +112,13 @@ app.post("/api/auth/login", (req, res) => {
   });
 });
 
+// Route: POST /api/auth/logout - User logout
 app.post("/api/auth/logout", (req, res) => {
   sessionManager.logout();
   res.json({ message: "Logged out successfully." });
 });
 
+// Route: GET /api/auth/me - Get current authenticated user
 app.get("/api/auth/me", (req, res) => {
   const user = sessionManager.getCurrentUser();
 
@@ -123,6 +129,7 @@ app.get("/api/auth/me", (req, res) => {
   res.json({ user });
 });
 
+// Route: POST /api/listings - Create a new listing (owners only)
 app.post("/api/listings", (req, res) => {
   const currentUser = sessionManager.getCurrentUser();
 
@@ -177,10 +184,17 @@ app.post("/api/listings", (req, res) => {
   });
 });
 
+// Route: GET /api/listings - List all listings (optionally include inactive)
 app.get("/api/listings", (req, res) => {
-  res.json({ listings });
+  const includeInactive = req.query.includeInactive === "true";
+  const visibleListings = includeInactive
+    ? listings
+    : listings.filter((listing) => listing.isActive !== false);
+
+  res.json({ listings: visibleListings });
 });
 
+// Route: GET /api/listings/:id - Get listing details by id
 app.get("/api/listings/:id", (req, res) => {
   const listingId = Number(req.params.id);
   const listing = listings.find((l) => l.id === listingId);
@@ -232,6 +246,7 @@ function hasOverlap(newStart, newEnd, existingBookingsForListing) {
   });
 }
 
+// Route: POST /api/bookings - Create a booking (renters only)
 app.post("/api/bookings", (req, res) => {
   const currentUser = sessionManager.getCurrentUser();
 
@@ -287,16 +302,17 @@ app.post("/api/bookings", (req, res) => {
     listingId: Number(listingId),
     listingSummary: `${listing.year} ${listing.make} ${listing.model}`,
     renter: {
-      id: currentUser.id,
-      name: currentUser.name,
-      email: currentUser.email,
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
     },
     owner: listing.owner,
     startDate,
     endDate,
     totalPrice,
-    status: "CONFIRMED",
-  };
+    status: "PENDING",
+    isPaid: false,
+};
 
   bookings.push(booking);
 
@@ -306,6 +322,7 @@ app.post("/api/bookings", (req, res) => {
   });
 });
 
+// Route: GET /api/bookings - Get bookings for current user
 app.get("/api/bookings", (req, res) => {
   const currentUser = sessionManager.getCurrentUser();
 
@@ -324,6 +341,7 @@ app.get("/api/bookings", (req, res) => {
   res.json({ bookings: filteredBookings });
 });
 
+// Route: POST /api/watch - Add a watch request for a listing (renters only)
 app.post("/api/watch", (req, res) => {
   const currentUser = sessionManager.getCurrentUser();
 
@@ -366,6 +384,7 @@ app.post("/api/watch", (req, res) => {
   res.status(201).json({ message: "Watch added successfully." });
 });
 
+// Route: GET /api/notifications - Get notifications for current user
 app.get("/api/notifications", (req, res) => {
   const currentUser = sessionManager.getCurrentUser();
 
@@ -380,6 +399,7 @@ app.get("/api/notifications", (req, res) => {
   res.json({ notifications: userNotifications });
 });
 
+// Route: PUT /api/listings/:id - Update listing (owners only)
 app.put("/api/listings/:id", (req, res) => {
   const currentUser = sessionManager.getCurrentUser();
 
@@ -415,6 +435,74 @@ app.put("/api/listings/:id", (req, res) => {
   res.json({
     message: "Listing updated successfully.",
     listing,
+  });
+});
+
+// Route: PUT /api/listings/:id/toggle-active - Toggle listing active status (owners only)
+app.put("/api/listings/:id/toggle-active", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  if (currentUser.role !== "owner") {
+    return res.status(403).json({ message: "Only owners can change listing status." });
+  }
+
+  const listingId = Number(req.params.id);
+  const listing = listings.find((l) => l.id === listingId);
+
+  if (!listing) {
+    return res.status(404).json({ message: "Listing not found." });
+  }
+
+  if (listing.owner.id !== currentUser.id) {
+    return res.status(403).json({ message: "You can only manage your own listings." });
+  }
+
+  listing.isActive = !listing.isActive;
+
+  res.json({
+    message: listing.isActive
+      ? "Listing reactivated successfully."
+      : "Listing deactivated successfully.",
+    listing,
+  });
+});
+
+// Route: PUT /api/bookings/:id/pay - Mark booking as paid (renters only)
+app.put("/api/bookings/:id/pay", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  if (currentUser.role !== "renter") {
+    return res.status(403).json({ message: "Only renters can make payments." });
+  }
+
+  const bookingId = Number(req.params.id);
+  const booking = bookings.find((b) => b.id === bookingId);
+
+  if (!booking) {
+    return res.status(404).json({ message: "Booking not found." });
+  }
+
+  if (booking.renter.id !== currentUser.id) {
+    return res.status(403).json({ message: "You can only pay for your own bookings." });
+  }
+
+  if (booking.isPaid) {
+    return res.status(400).json({ message: "This booking has already been paid." });
+  }
+
+  booking.isPaid = true;
+
+  res.json({
+    message: "Payment completed successfully.",
+    booking,
   });
 });
 

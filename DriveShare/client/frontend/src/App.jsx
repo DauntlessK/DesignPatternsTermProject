@@ -3,11 +3,12 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CreateListingPage from "./pages/CreateListingPage";
 import ListingsPage from "./pages/ListingsPage";
+import ManageListingsPage from "./pages/ManageListingsPage";
 import SearchPage from "./pages/SearchPage";
 import BookListingPage from "./pages/BookListingPage";
 import MyBookingsPage from "./pages/MyBookingsPage";
 import NotificationsPage from "./pages/NotificationsPage";
-import UpdateListingPricePage from "./pages/UpdateListingPricePage";
+
 import { useAuth } from "./context/AuthContext";
 import logo from "./assets/logo.png";
 
@@ -55,10 +56,10 @@ export default function App() {
 
             {user?.role === "owner" && (
               <>
-                <Link to="/create-listing">Create Listing</Link>
-                <Link to="/search">Search</Link>
-                <Link to="/my-bookings">My Bookings</Link>
-                <Link to="/update-prices">Update Prices</Link>
+                <Link to="/create-listing" style={{ marginRight: "10px" }}>Create Listing</Link>
+                <Link to="/manage-listings" style={{ marginRight: "10px" }}>Manage Listings</Link>
+                <Link to="/search" style={{ marginRight: "10px" }}>Search</Link>
+                <Link to="/my-bookings" style={{ marginRight: "10px" }}>My Bookings</Link>
               </>
             )}
 
@@ -96,7 +97,8 @@ export default function App() {
         <Route path="/book/:id" element={<BookListingPage />} />
         <Route path="/my-bookings" element={<MyBookingsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/update-prices" element={<UpdateListingPricePage />} />
+        <Route path="/manage-listings" element={<ManageListingsPage />} />
+
       </Routes>
     </div>
   );
