@@ -41,6 +41,44 @@ export default function MyBookingsPage() {
     }
   };
 
+  const handleConfirm = async (bookingId) => {
+    try {
+      const result = await bookingService.confirmBooking(bookingId);
+
+      setMessages((prev) => ({
+        ...prev,
+        [bookingId]: `${result.message}`,
+      }));
+
+      loadBookings();
+    } catch (err) {
+      setMessages((prev) => ({
+        ...prev,
+        [bookingId]:
+          err?.response?.data?.message || "Failed to confirm booking",
+      }));
+    }
+  };
+
+  const handleDeny = async (bookingId) => {
+    try {
+      const result = await bookingService.denyBooking(bookingId);
+
+      setMessages((prev) => ({
+        ...prev,
+        [bookingId]: `${result.message}`,
+      }));
+
+      loadBookings();
+    } catch (err) {
+      setMessages((prev) => ({
+        ...prev,
+        [bookingId]:
+          err?.response?.data?.message || "Failed to deny booking",
+      }));
+    }
+  };
+
   if (error) return <p>{error}</p>;
 
   return (
@@ -64,7 +102,7 @@ export default function MyBookingsPage() {
                   Payment Status: {booking.isPaid ? "Paid" : "Unpaid"}
                 </p>
 
-                {!booking.isPaid && (
+                {booking.status === "CONFIRMED" && !booking.isPaid && (
                   <button
                     className="button"
                     onClick={() => handlePay(booking.id)}
@@ -72,13 +110,41 @@ export default function MyBookingsPage() {
                     Pay ${booking.totalPrice}
                   </button>
                 )}
+
+                {booking.status === "PENDING" && (
+                  <p>Waiting for owner approval.</p>
+                )}
+
+                {booking.status === "DENIED" && (
+                  <p>This booking was denied.</p>
+                )}
               </>
             )}
 
             {user?.role === "owner" && (
-              <p>
-                Payment Status: {booking.isPaid ? "Paid" : "Not Paid Yet"}
-              </p>
+              <>
+                <p>
+                  Payment Status: {booking.isPaid ? "Paid" : "Not Paid Yet"}
+                </p>
+
+                {booking.status === "PENDING" && (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <button
+                      className="button"
+                      onClick={() => handleConfirm(booking.id)}
+                    >
+                      Confirm Booking
+                    </button>
+
+                    <button
+                      className="button"
+                      onClick={() => handleDeny(booking.id)}
+                    >
+                      Deny Booking
+                    </button>
+                  </div>
+                )}
+              </>
             )}
 
             <p>{messages[booking.id]}</p>

@@ -10,6 +10,16 @@ const bookingService = {
     const { data } = await api.get("/bookings");
     return data;
   },
+
+  confirmBooking: async (bookingId) => {
+    const { data } = await api.put(`/bookings/${bookingId}/confirm`);
+    return data;
+  },
+
+  denyBooking: async (bookingId) => {
+    const { data } = await api.put(`/bookings/${bookingId}/deny`);
+    return data;
+  },
 };
 
 export default bookingService;

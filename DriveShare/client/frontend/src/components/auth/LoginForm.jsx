@@ -15,9 +15,9 @@ export default function LoginForm() {
 
     try {
       const result = await login(form);
-      setMessage(`✅ Welcome, ${result.user.name}!`);
+      setMessage(`Welcome, ${result.user.name}!`);
     } catch (err) {
-      setMessage(err?.response?.data?.message || "❌ Login failed");
+      setMessage(err?.response?.data?.message || "Login failed");
     }
   };
 

@@ -60,6 +60,7 @@ export default function App() {
                 <Link to="/manage-listings" style={{ marginRight: "10px" }}>Manage Listings</Link>
                 <Link to="/search" style={{ marginRight: "10px" }}>Search</Link>
                 <Link to="/my-bookings" style={{ marginRight: "10px" }}>My Bookings</Link>
+                <Link to="/notifications" style={{ marginRight: "10px" }}>Notifications</Link>
               </>
             )}
 

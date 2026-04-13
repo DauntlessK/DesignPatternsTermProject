@@ -8,6 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Users (Starts with 1 owner and 1 renter for testing/demo purposes)
 const users = [
   {
     id: 1,
@@ -35,7 +36,64 @@ const users = [
   },
 ];
 
-const listings = [];
+// Listings (Starts with 3 sample listings for testing/demo purposes)
+const listings = [
+  {
+    id: 1,
+    owner: {
+      id: 1,
+      name: "Owner Admin",
+      email: "owner@driveshare.com",
+    },
+    make: "Audi",
+    model: "A4",
+    year: "2023",
+    mileage: "12000",
+    pickupLocation: "Detroit",
+    pricePerDay: "95",
+    description: "Sleek sedan, red.",
+    carType: "Car",
+    imageUrl: "https://d3s8goeblmpptu.cloudfront.net/mrp/audi/2023/a4/2023-audi-a4mrp_624778.jpg",
+    isActive: true,
+  },
+  {
+    id: 2,
+    owner: {
+      id: 1,
+      name: "Owner Admin",
+      email: "owner@driveshare.com",
+    },
+    make: "Toyota",
+    model: "RAV4",
+    year: "2022",
+    mileage: "18000",
+    pickupLocation: "Ann Arbor",
+    pricePerDay: "65",
+    description: "Reliable SUV, great for trips and daily use.",
+    carType: "SUV",
+    imageUrl: "https://info.oregon.aaa.com/wp-content/uploads/2022/08/2022-Toyota-RAV4-Prime-XSE-AWD-IMG_9496-edit-scaled.jpg",
+    isActive: true,
+  },
+  {
+    id: 3,
+    owner: {
+      id: 1,
+      name: "Owner Admin",
+      email: "owner@driveshare.com",
+    },
+    make: "Ford",
+    model: "F-150",
+    year: "2021",
+    mileage: "25000",
+    pickupLocation: "Dearborn",
+    pricePerDay: "85",
+    description: "Powerful truck, perfect for hauling and work.",
+    carType: "Truck",
+    imageUrl: "https://fordtadvantage-com.cdn-convertus.com/uploads/sites/106/2021/04/2021-Ford-F-150-Stone-Gray_o-1024x576-1.jpg",
+    isActive: true,
+  },
+];
+
 const bookings = [];
 const watchRequests = [];
 const notifications = [];
@@ -175,7 +233,7 @@ app.post("/api/listings", (req, res) => {
   .setIsActive(true)
   .build();
 
-  listing.id = listings.length + 1;
+  listing.id = Math.max(...listings.map((l) => l.id), 0) + 1;
   listings.push(listing);
 
   res.status(201).json({
@@ -315,6 +373,13 @@ app.post("/api/bookings", (req, res) => {
 };
 
   bookings.push(booking);
+
+  notifications.push({
+  id: notifications.length + 1,
+  userId: booking.owner.id,
+  message: `New booking request for ${booking.listingSummary}. Please review and confirm or deny it.`,
+  bookingId: booking.id,
+});
 
   res.status(201).json({
     message: "Booking created successfully.",
@@ -500,8 +565,122 @@ app.put("/api/bookings/:id/pay", (req, res) => {
 
   booking.isPaid = true;
 
+  notifications.push({
+    id: notifications.length + 1,
+    userId: booking.renter.id,
+    message: `Payment received for ${booking.listingSummary}.`,
+    bookingId: booking.id,
+    });
+
+    notifications.push({
+        id: notifications.length + 1,
+        userId: booking.owner.id,
+        message: `Payment has been received for ${booking.listingSummary}.`,
+        bookingId: booking.id,
+        });
+
   res.json({
     message: "Payment completed successfully.",
+    booking,
+  });
+});
+
+// Route: PUT /api/bookings/:id/confirm - Confirm a booking (owners only)
+app.put("/api/bookings/:id/confirm", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  if (currentUser.role !== "owner") {
+    return res.status(403).json({ message: "Only owners can confirm bookings." });
+  }
+
+  const bookingId = Number(req.params.id);
+  const booking = bookings.find((b) => b.id === bookingId);
+
+  if (!booking) {
+    return res.status(404).json({ message: "Booking not found." });
+  }
+
+  if (booking.owner.id !== currentUser.id) {
+    return res.status(403).json({ message: "You can only confirm your own bookings." });
+  }
+
+  if (booking.status !== "PENDING") {
+    return res.status(400).json({ message: "Only pending bookings can be confirmed." });
+  }
+
+  const bookingsForListing = bookings.filter(
+    (b) => b.listingId === booking.listingId && b.id !== booking.id
+  );
+
+  const start = new Date(booking.startDate);
+  start.setHours(8, 0, 0, 0);
+
+  const end = new Date(booking.endDate);
+  end.setHours(20, 0, 0, 0);
+
+  if (hasOverlap(start, end, bookingsForListing)) {
+    return res.status(400).json({
+      message: "This booking overlaps an already confirmed booking.",
+    });
+  }
+
+  booking.status = "CONFIRMED";
+
+  notifications.push({
+    id: notifications.length + 1,
+    userId: booking.renter.id,
+    message: `Your booking for ${booking.listingSummary} has been confirmed.`,
+    bookingId: booking.id,
+  });
+
+  res.json({
+    message: "Booking confirmed successfully.",
+    booking,
+  });
+});
+
+// Route: PUT /api/bookings/:id/deny - Deny a booking (owners only)
+app.put("/api/bookings/:id/deny", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  if (currentUser.role !== "owner") {
+    return res.status(403).json({ message: "Only owners can deny bookings." });
+  }
+
+  const bookingId = Number(req.params.id);
+  const booking = bookings.find((b) => b.id === bookingId);
+
+  if (!booking) {
+    return res.status(404).json({ message: "Booking not found." });
+  }
+
+  if (booking.owner.id !== currentUser.id) {
+    return res.status(403).json({ message: "You can only deny your own bookings." });
+  }
+
+  if (booking.status !== "PENDING") {
+    return res.status(400).json({ message: "Only pending bookings can be denied." });
+  }
+
+  booking.status = "DENIED";
+
+  notifications.push({
+    id: notifications.length + 1,
+    userId: booking.renter.id,
+    message: `Your booking for ${booking.listingSummary} was denied by the owner.`,
+    bookingId: booking.id,
+  });
+
+  res.json({
+    message: "Booking denied successfully.",
     booking,
   });
 });
