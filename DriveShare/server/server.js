@@ -280,6 +280,7 @@ function notifyWatchers(listing) {
   relevantWatches.forEach((watch) => {
     if (Number(listing.pricePerDay) <= Number(watch.watcher.targetMaxPrice)) {
       notifications.push({
+        createdAt: new Date().toLocaleString(),
         id: notifications.length + 1,
         userId: watch.watcher.userId,
         message: `${listing.year} ${listing.make} ${listing.model} is now available at $${listing.pricePerDay}/day, which matches your watch target.`,
@@ -375,6 +376,7 @@ app.post("/api/bookings", (req, res) => {
   bookings.push(booking);
 
   notifications.push({
+  createdAt: new Date().toLocaleString(),
   id: notifications.length + 1,
   userId: booking.owner.id,
   message: `New booking request for ${booking.listingSummary}. Please review and confirm or deny it.`,
@@ -566,6 +568,7 @@ app.put("/api/bookings/:id/pay", (req, res) => {
   booking.isPaid = true;
 
   notifications.push({
+    createdAt: new Date().toLocaleString(),
     id: notifications.length + 1,
     userId: booking.renter.id,
     message: `Payment received for ${booking.listingSummary}.`,
@@ -573,6 +576,7 @@ app.put("/api/bookings/:id/pay", (req, res) => {
     });
 
     notifications.push({
+        createdAt: new Date().toLocaleString(),
         id: notifications.length + 1,
         userId: booking.owner.id,
         message: `Payment has been received for ${booking.listingSummary}.`,
@@ -631,6 +635,7 @@ app.put("/api/bookings/:id/confirm", (req, res) => {
   booking.status = "CONFIRMED";
 
   notifications.push({
+    createdAt: new Date().toLocaleString(),
     id: notifications.length + 1,
     userId: booking.renter.id,
     message: `Your booking for ${booking.listingSummary} has been confirmed.`,
@@ -673,6 +678,7 @@ app.put("/api/bookings/:id/deny", (req, res) => {
   booking.status = "DENIED";
 
   notifications.push({
+    createdAt: new Date().toLocaleString(),
     id: notifications.length + 1,
     userId: booking.renter.id,
     message: `Your booking for ${booking.listingSummary} was denied by the owner.`,
@@ -682,6 +688,50 @@ app.put("/api/bookings/:id/deny", (req, res) => {
   res.json({
     message: "Booking denied successfully.",
     booking,
+  });
+});
+
+// Route: POST /api/bookings/:id/message - Send a message about a booking (renters and owners)
+app.post("/api/bookings/:id/message", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  const bookingId = Number(req.params.id);
+  const booking = bookings.find((b) => b.id === bookingId);
+
+  if (!booking) {
+    return res.status(404).json({ message: "Booking not found." });
+  }
+
+  const { messageText } = req.body;
+
+  if (!messageText || !messageText.trim()) {
+    return res.status(400).json({ message: "Message text is required." });
+  }
+
+  const isRenter = booking.renter.id === currentUser.id;
+  const isOwner = booking.owner.id === currentUser.id;
+
+  if (!isRenter && !isOwner) {
+    return res.status(403).json({ message: "You can only message bookings you are part of." });
+  }
+
+  const recipientId = isRenter ? booking.owner.id : booking.renter.id;
+  const senderLabel = isRenter ? "Renter" : "Owner";
+
+  notifications.push({
+    id: notifications.length + 1,
+    userId: recipientId,
+    message: `${senderLabel} message about ${booking.listingSummary}: ${messageText}`,
+    bookingId: booking.id,
+    createdAt: new Date().toLocaleString(),
+  });
+
+  res.json({
+    message: "Message sent successfully.",
   });
 });
 

@@ -16,6 +16,7 @@ function HomePage() {
   return (
     <div className="container">
       <div className="card" style={{ textAlign: "center", padding: "40px" }}>
+        <img src={logo} alt="logo" style={{ height: "400px" }} />
         <h1>DriveShare</h1>
         <p style={{ fontSize: "18px", marginTop: "10px" }}>
           Rent cars directly from owners. Simple, fast, and flexible.

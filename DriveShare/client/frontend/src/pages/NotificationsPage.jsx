@@ -21,7 +21,7 @@ export default function NotificationsPage() {
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
+    <div className="container">
       <h1>Notifications</h1>
 
       {notifications.length === 0 ? (
@@ -30,9 +30,12 @@ export default function NotificationsPage() {
         notifications.map((notification) => (
           <div
             key={notification.id}
-            style={{ border: "1px solid gray", padding: "10px", marginBottom: "10px" }}
+            className="card"
           >
-            <p>{notification.message}</p>
+            <p style={{ marginBottom: "8px" }}>{notification.message}</p>
+            <p style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+              {notification.createdAt || "No timestamp"}
+            </p>
           </div>
         ))
       )}

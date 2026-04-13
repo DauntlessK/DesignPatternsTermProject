@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import bookingService from "../services/bookingService";
 import paymentService from "../services/paymentService";
 import { useAuth } from "../context/AuthContext";
+import BookingMessageBox from "../components/BookingMessageBox";
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -146,6 +147,8 @@ export default function MyBookingsPage() {
                 )}
               </>
             )}
+            
+            <BookingMessageBox bookingId={booking.id} />
 
             <p>{messages[booking.id]}</p>
           </div>
