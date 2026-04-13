@@ -64,7 +64,7 @@ export default function BookingForm({ listing }) {
       <br />
       <br />
 
-      <button type="submit">Confirm Booking</button>
+      <button type="submit" className="button">Confirm Booking</button>
       <p>{message}</p>
     </form>
   );

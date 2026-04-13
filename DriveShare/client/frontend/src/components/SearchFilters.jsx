@@ -5,6 +5,7 @@ export default function SearchFilters({ allListings, mediator }) {
     location: "",
     make: "",
     maxPrice: "",
+    carType: "",
   });
 
   const handleChange = (e) => {
@@ -43,6 +44,18 @@ export default function SearchFilters({ allListings, mediator }) {
         value={filters.maxPrice}
         onChange={handleChange}
       />
+
+      <select
+        name="carType"
+        value={filters.carType}
+        onChange={handleChange}
+        style={{ marginLeft: "10px" }}
+      >
+        <option value="">All Types</option>
+        <option value="Car">Car</option>
+        <option value="SUV">SUV</option>
+        <option value="Truck">Truck</option>
+      </select>
     </div>
   );
 }

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import listingService from "../services/listingService";
+import placeholderImage from "../assets/placeholder-car.jpg";
+
+const PLACEHOLDER_IMAGE = placeholderImage;
 
 export default function ListingsPage() {
   const [listings, setListings] = useState([]);
@@ -30,9 +31,24 @@ export default function ListingsPage() {
             key={listing.id}
             style={{ border: "1px solid gray", padding: "10px", marginBottom: "10px" }}
           >
+            <img
+              src={listing.imageUrl && listing.imageUrl.trim() ? listing.imageUrl : PLACEHOLDER_IMAGE}
+              alt={`${listing.year} ${listing.make} ${listing.model}`}
+              style={{
+                width: "100%",
+                maxWidth: "300px",
+                height: "200px",
+                objectFit: "cover",
+                display: "block",
+                marginBottom: "10px",
+                border: "1px solid #ccc",
+              }}
+            />
+
             <h3>
               {listing.year} {listing.make} {listing.model}
             </h3>
+            <p>Type: {listing.carType}</p>
             <p>Mileage: {listing.mileage}</p>
             <p>Location: {listing.pickupLocation}</p>
             <p>Price: ${listing.pricePerDay}/day</p>

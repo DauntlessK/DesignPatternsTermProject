@@ -37,6 +37,8 @@ const users = [
 
 const listings = [];
 const bookings = [];
+const watchRequests = [];
+const notifications = [];
 
 app.get("/", (req, res) => {
   res.send("DriveShare API");
@@ -140,26 +142,31 @@ app.post("/api/listings", (req, res) => {
     pickupLocation,
     pricePerDay,
     description,
+    carType,
+    imageUrl,
   } = req.body;
 
-  if (!make || !model || !year || !mileage || !pickupLocation || !pricePerDay) {
+  if (!make || !model || !year || !mileage || !pickupLocation || !pricePerDay || !carType) {
     return res.status(400).json({ message: "Missing required listing fields." });
-  }
+ }
 
   const listing = new CarListingBuilder()
-    .setOwner({
-      id: currentUser.id,
-      name: currentUser.name,
-      email: currentUser.email,
-    })
-    .setMake(make)
-    .setModel(model)
-    .setYear(year)
-    .setMileage(mileage)
-    .setPickupLocation(pickupLocation)
-    .setPricePerDay(pricePerDay)
-    .setDescription(description || "")
-    .build();
+  .setOwner({
+    id: currentUser.id,
+    name: currentUser.name,
+    email: currentUser.email,
+  })
+  .setMake(make)
+  .setModel(model)
+  .setYear(year)
+  .setMileage(mileage)
+  .setPickupLocation(pickupLocation)
+  .setPricePerDay(pricePerDay)
+  .setCarType(carType)
+  .setImageUrl(imageUrl || "")
+  .setDescription(description || "")
+  .setIsActive(true)
+  .build();
 
   listing.id = listings.length + 1;
   listings.push(listing);
@@ -184,6 +191,31 @@ app.get("/api/listings/:id", (req, res) => {
 
   res.json({ listing });
 });
+
+function attachWatcher(listingId, watcher) {
+  watchRequests.push({
+    id: watchRequests.length + 1,
+    listingId,
+    watcher,
+  });
+}
+
+function notifyWatchers(listing) {
+  const relevantWatches = watchRequests.filter(
+    (watch) => watch.listingId === listing.id
+  );
+
+  relevantWatches.forEach((watch) => {
+    if (Number(listing.pricePerDay) <= Number(watch.watcher.targetMaxPrice)) {
+      notifications.push({
+        id: notifications.length + 1,
+        userId: watch.watcher.userId,
+        message: `${listing.year} ${listing.make} ${listing.model} is now available at $${listing.pricePerDay}/day, which matches your watch target.`,
+        listingId: listing.id,
+      });
+    }
+  });
+}
 
 // overlap helper
 function hasOverlap(newStart, newEnd, existingBookingsForListing) {
@@ -290,6 +322,100 @@ app.get("/api/bookings", (req, res) => {
   }
 
   res.json({ bookings: filteredBookings });
+});
+
+app.post("/api/watch", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  if (currentUser.role !== "renter") {
+    return res.status(403).json({ message: "Only renters can watch listings." });
+  }
+
+  const { listingId, targetMaxPrice } = req.body;
+
+  if (!listingId || !targetMaxPrice) {
+    return res.status(400).json({ message: "Missing watch request fields." });
+  }
+
+  const listing = listings.find((l) => l.id === Number(listingId));
+  if (!listing) {
+    return res.status(404).json({ message: "Listing not found." });
+  }
+
+  const existingWatch = watchRequests.find(
+    (w) =>
+      w.listingId === Number(listingId) &&
+      w.watcher.userId === currentUser.id
+  );
+
+  if (existingWatch) {
+    return res.status(400).json({ message: "You are already watching this listing." });
+  }
+
+  attachWatcher(Number(listingId), {
+    userId: currentUser.id,
+    userName: currentUser.name,
+    userEmail: currentUser.email,
+    targetMaxPrice,
+  });
+
+  res.status(201).json({ message: "Watch added successfully." });
+});
+
+app.get("/api/notifications", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  const userNotifications = notifications.filter(
+    (n) => n.userId === currentUser.id
+  );
+
+  res.json({ notifications: userNotifications });
+});
+
+app.put("/api/listings/:id", (req, res) => {
+  const currentUser = sessionManager.getCurrentUser();
+
+  if (!currentUser) {
+    return res.status(401).json({ message: "You must be logged in." });
+  }
+
+  if (currentUser.role !== "owner") {
+    return res.status(403).json({ message: "Only owners can update listings." });
+  }
+
+  const listingId = Number(req.params.id);
+  const listing = listings.find((l) => l.id === listingId);
+
+  if (!listing) {
+    return res.status(404).json({ message: "Listing not found." });
+  }
+
+  if (listing.owner.id !== currentUser.id) {
+    return res.status(403).json({ message: "You can only edit your own listings." });
+  }
+
+  const { pricePerDay } = req.body;
+
+  if (!pricePerDay) {
+    return res.status(400).json({ message: "Price is required." });
+  }
+
+  listing.pricePerDay = pricePerDay;
+
+  notifyWatchers(listing);
+
+  res.json({
+    message: "Listing updated successfully.",
+    listing,
+  });
 });
 
 const PORT = 5000;

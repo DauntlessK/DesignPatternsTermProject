@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import listingService from "../services/listingService";
 import BookingForm from "../components/BookingForm";
+import WatchListingForm from "../components/WatchListingForm";
 
 export default function BookListingPage() {
   const { id } = useParams();
@@ -40,6 +41,7 @@ export default function BookListingPage() {
       </div>
 
       <BookingForm listing={listing} />
+      <WatchListingForm listing={listing} />
     </div>
   );
 }

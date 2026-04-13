@@ -1,0 +1,67 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: #f8faf9;
+  color: #1f2933;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Buttons */
+.button {
+  background-color: #84cc16;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.button:hover {
+  background-color: #65a30d;
+}
+
+/* Inputs */
+input, select, textarea {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+input:focus, select:focus {
+  outline: 2px solid #84cc16;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+}
+
+/* Navbar */
+.navbar {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 20px;
+}
+
+.nav-links a {
+  margin-right: 15px;
+  text-decoration: none;
+  color: #1f2933;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  color: #84cc16;
+}

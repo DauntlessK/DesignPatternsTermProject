@@ -18,7 +18,10 @@ class SearchMediator {
         !filters.maxPrice ||
         Number(listing.pricePerDay) <= Number(filters.maxPrice);
 
-      return matchesLocation && matchesMake && matchesMaxPrice;
+      const matchesCarType =
+        !filters.carType || listing.carType === filters.carType;
+
+      return matchesLocation && matchesMake && matchesMaxPrice && matchesCarType;
     });
 
     this.setFilteredListings(filtered);

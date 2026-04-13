@@ -5,11 +5,13 @@ export default function CarListingForm() {
   const [form, setForm] = useState({
     make: "",
     model: "",
+    carType: "Car",
     year: "",
     mileage: "",
     pickupLocation: "",
     pricePerDay: "",
     description: "",
+    imageUrl: ""
   });
 
   const [message, setMessage] = useState("");
@@ -19,7 +21,7 @@ export default function CarListingForm() {
 
     try {
       const result = await listingService.create(form);
-      setMessage(`✅ Listing created: ${result.listing.year} ${result.listing.make} ${result.listing.model}`);
+      setMessage(`Listing created: ${result.listing.year} ${result.listing.make} ${result.listing.model}`);
       setForm({
         make: "",
         model: "",
@@ -30,7 +32,7 @@ export default function CarListingForm() {
         description: "",
       });
     } catch (err) {
-      setMessage(err?.response?.data?.message || "❌ Failed to create listing");
+      setMessage(err?.response?.data?.message || "Failed to create listing");
     }
   };
 
@@ -46,6 +48,14 @@ export default function CarListingForm() {
         value={form.model}
         onChange={(e) => setForm({ ...form, model: e.target.value })}
       />
+      <select
+        value={form.carType}
+        onChange={(e) => setForm({ ...form, carType: e.target.value })}
+      >
+        <option value="Car">Car</option>
+        <option value="SUV">SUV</option>
+        <option value="Truck">Truck</option>
+      </select>
       <input
         placeholder="Year"
         value={form.year}
@@ -71,7 +81,12 @@ export default function CarListingForm() {
         value={form.description}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
       />
-      <button type="submit">Create Listing</button>
+      <input
+        placeholder="Image URL (optional)"
+        value={form.imageUrl}
+        onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+      />
+      <button type="submit" className="button">Create Listing</button>
       <p>{message}</p>
     </form>
   );

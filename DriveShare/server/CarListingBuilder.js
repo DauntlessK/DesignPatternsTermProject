@@ -43,6 +43,21 @@ class CarListingBuilder {
     return this;
   }
 
+  setCarType(carType) {
+  this.listing.carType = carType;
+  return this;
+}
+
+setIsActive(isActive) {
+  this.listing.isActive = isActive;
+  return this;
+}
+
+setImageUrl(imageUrl) {
+  this.listing.imageUrl = imageUrl;
+  return this;
+}
+
   build() {
     return { ...this.listing };
   }
