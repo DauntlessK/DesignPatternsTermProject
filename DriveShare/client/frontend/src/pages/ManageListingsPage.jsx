@@ -1,3 +1,4 @@
+// Page: ManageListingsPage - owners manage their listings (edit price, toggle active)
 import { useEffect, useState } from "react";
 import listingService from "../services/listingService";
 import api from "../api/axios";

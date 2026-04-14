@@ -1,3 +1,4 @@
+// Page: UpdateListingPricePage - update prices for listings
 import { useEffect, useState } from "react";
 import listingService from "../services/listingService";
 import api from "../api/axios";

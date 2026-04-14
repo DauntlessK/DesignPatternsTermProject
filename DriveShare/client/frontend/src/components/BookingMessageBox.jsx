@@ -1,3 +1,4 @@
+// Component: BookingMessageBox - send a message related to a booking
 import { useState } from "react";
 import messageService from "../services/messageService";
 

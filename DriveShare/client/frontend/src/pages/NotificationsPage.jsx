@@ -1,3 +1,4 @@
+// Page: NotificationsPage - shows current user's notifications
 import { useEffect, useState } from "react";
 import notificationService from "../services/notificationService";
 

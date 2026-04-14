@@ -1,3 +1,4 @@
+// Page: LoginPage - login form and inline registration component
 import LoginForm from "../components/auth/LoginForm";
 import RegisterForm from "../components/auth/RegisterForm";
 

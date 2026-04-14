@@ -1,3 +1,4 @@
+// Page: ListingsPage - displays all available car listings
 import { Link } from "react-router-dom";
 import placeholderImage from "../assets/placeholder-car.jpg";
 

@@ -1,3 +1,4 @@
+// Page: BookListingPage - view details for a listing and book or watch it
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import listingService from "../services/listingService";

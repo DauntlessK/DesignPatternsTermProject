@@ -1,3 +1,4 @@
+// Component: BookingForm - form to create a booking for a listing
 import { useState } from "react";
 import bookingService from "../services/bookingService";
 

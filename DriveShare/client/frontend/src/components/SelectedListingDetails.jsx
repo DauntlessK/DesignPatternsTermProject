@@ -1,3 +1,4 @@
+// Component: SelectedListingDetails - shows details for the currently selected listing
 export default function SelectedListingDetails({ listing }) {
   if (!listing) {
     return (

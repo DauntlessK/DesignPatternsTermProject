@@ -1,3 +1,4 @@
+// Component: RegisterForm - registration form with security questions
 import { useState } from "react";
 import authService from "../../services/authService";
 

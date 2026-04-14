@@ -1,3 +1,4 @@
+// Component: SearchFilters - UI for filtering listings (updates mediator)
 import { useState } from "react";
 
 export default function SearchFilters({ allListings, mediator }) {

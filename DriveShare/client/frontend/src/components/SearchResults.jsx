@@ -1,3 +1,4 @@
+// Component: SearchResults - shows a list of search results and selection handling
 import { Link } from "react-router-dom";
 import placeholderImage from "../assets/placeholder-car.jpg";
 

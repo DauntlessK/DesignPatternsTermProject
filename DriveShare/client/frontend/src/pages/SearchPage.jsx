@@ -1,3 +1,4 @@
+// Page: SearchPage - search and browse listings with filters and details
 import { useEffect, useMemo, useState } from "react";
 import listingService from "../services/listingService";
 import SearchMediator from "../SearchMediator";

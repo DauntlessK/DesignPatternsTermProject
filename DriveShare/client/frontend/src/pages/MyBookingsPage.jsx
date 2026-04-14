@@ -1,3 +1,4 @@
+// Page: MyBookingsPage - lists bookings for current user and allows actions
 import { useEffect, useState } from "react";
 import bookingService from "../services/bookingService";
 import paymentService from "../services/paymentService";

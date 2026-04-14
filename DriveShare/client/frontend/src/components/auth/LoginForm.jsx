@@ -1,3 +1,4 @@
+// Component: LoginForm - handles user login inputs and submits
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 

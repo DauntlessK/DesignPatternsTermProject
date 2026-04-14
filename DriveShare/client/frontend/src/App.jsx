@@ -12,6 +12,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import { useAuth } from "./context/AuthContext";
 import logo from "./assets/logo.png";
 
+// Component: HomePage - simple landing/hero section shown at root
 function HomePage() {
   return (
     <div className="container">
@@ -26,6 +27,7 @@ function HomePage() {
   );
 }
 
+// Component: App - main app layout, navigation and route setup
 export default function App() {
   const { user, logout, loading } = useAuth();
 
@@ -89,6 +91,7 @@ export default function App() {
         </div>
       </nav>
 
+      {/* Routes: application route definitions */}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
